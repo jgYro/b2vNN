@@ -47,6 +47,7 @@ model = Chain(
     softmax
 )
 
+
 loss(x, y) = Flux.crossentropy(model(x), onehotbatch(y, 0:1))
 
 optimizer = ADAM()
@@ -61,11 +62,9 @@ end
 ps = Flux.params(model)
 
 num_epochs = 10
-
 for epoch in 1:num_epochs
     Flux.train!(loss, ps, zip(train_x, train_y), optimizer)
     println("Epoch $epoch completed")
-    
     # Calculate accuracy on test data
     correct_count = 0
     total_count = 0
@@ -83,13 +82,16 @@ for epoch in 1:num_epochs
     println("Accuracy at epoch $epoch: $accuracy")
 end
 
-# test = load("./test.png")
-# test = imresize(test, (256, 256))
-# test = Float32.(reshape(channelview(Gray.(test)), 256, 256))
-# test = reshape(vec(test), 65536)
-# predict = model(test)
-# test = load("./test2.png")
-# test = imresize(test, (256, 256))
-# test = Float32.(reshape(channelview(Gray.(test)), 256, 256))
-# test = reshape(vec(test), 65536)
-# predict = model(test)
+bin = load("./bin.png")
+bin = imresize(bin, (256, 256))
+bin = Float32.(reshape(channelview(Gray.(bin)), 256, 256))
+bin = reshape(vec(bin), 65536)
+println("Printing Result for Bin.png")
+predict = model(bin)
+
+pic = load("./pic.png")
+pic = imresize(pic, (256, 256))
+pic = Float32.(reshape(channelview(Gray.(pic)), 256, 256))
+pic = reshape(vec(pic), 65536)
+println("Printing Result for Pic.png")
+predict = model(pic)
