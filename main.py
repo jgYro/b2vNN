@@ -2,6 +2,7 @@ from nicegui import ui
 
 from convert import create_coordinates_from_bytes, create_image
 
+
 current_image = None
 remove_button = None
 

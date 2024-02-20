@@ -16,11 +16,8 @@ def create_coordinates(file_path):
 
 def create_coordinates_from_bytes(bytes_data):
     coordinates = []
-    # Ensure the bytes_data length is even for pairs to be complete
-    if len(bytes_data) % 2 != 0:
-        raise ValueError("The bytes data length must be even.")
-
-    for i in range(0, len(bytes_data), 2):
+    remaining_bytes = len(bytes_data) % 2
+    for i in range(0, len(bytes_data) - remaining_bytes, 2):
         coordinates.append((bytes_data[i], bytes_data[i + 1]))
     return coordinates
 
