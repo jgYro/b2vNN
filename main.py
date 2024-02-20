@@ -1,55 +1,41 @@
-import argparse
-import math
-from PIL import Image
+from nicegui import ui
+
+from convert import create_coordinates_from_bytes, create_image
+
+current_image = None
+remove_button = None
 
 
-def create_coordinates(file_path):
-    coordinates = []
-    with open(file_path, 'rb') as file:
-        window = file.read(2)
-        while len(window) == 2:
-            coordinates.append((window[0], window[1]))
-            window = file.read(2)
-    return coordinates
+def handle_upload(e):
+    global current_image, remove_button
+
+    ui.notify(f"Uploaded {e.name}")
+
+    text = e.content.read()
+    coordinates = create_coordinates_from_bytes(text)
+
+    image_data = create_image(coordinates, tuple([256, 256]))
+
+    if current_image:
+        current_image.delete()
+    if remove_button:
+        remove_button.delete()
+
+    current_image = ui.image(image_data)
+    remove_button = ui.button("Remove", on_click=lambda e: remove_image_and_button())
 
 
-def create_image(coordinates, image_size):
-    image = Image.new('L', image_size)  # 'L' mode for greyscale
-    pixel_values = [0] * (image_size[0] * image_size[1])
-
-    for coord in coordinates:
-        index = coord[1] * image_size[0] + coord[0]
-        pixel_values[index] += 1
-
-    max_frequency = max(pixel_values)
-    if max_frequency == 0:
-        max_frequency = 1  # Avoid division by zero if there are no coordinates
-
-    for y in range(image_size[1]):
-        for x in range(image_size[0]):
-            index = y * image_size[0] + x
-            brightness = int((math.log(pixel_values[index] + 1) / math.log(max_frequency + 1)) * 255)
-            image.putpixel((x, y), brightness)
-
-    return image
+def remove_image_and_button():
+    global current_image, remove_button
+    if current_image:
+        current_image.delete()
+        current_image = None
+    if remove_button:
+        remove_button.delete()
+        remove_button = None
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate an image based on the frequency of coordinates from a binary file.")
-    parser.add_argument("file_path", help="Path to the binary file")
-    parser.add_argument("--image-size", nargs=2, type=int, default=[256, 256], metavar=('WIDTH', 'HEIGHT'),
-                        help="Size of the output image (default: 256 256)")
-    parser.add_argument("--output", "-o", help="Output file path to save the generated PNG image")
-    args = parser.parse_args()
+with ui.label("B2V"):
+    ui.upload(on_upload=handle_upload).classes("max-w-full")
 
-    coordinates = create_coordinates(args.file_path)
-    image = create_image(coordinates, tuple(args.image_size))
-    if args.output:
-        image.save(args.output)
-        print(f"Image saved to {args.output}")
-    else:
-        image.show()
-
-
-if __name__ == "__main__":
-    main()
+ui.run()
